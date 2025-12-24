@@ -1,3 +1,6 @@
 [submodule "appData/engine/gbvm"]
 	path = appData/engine/gbvm
 	url = https://github.com/chrismaltby/gbvm.git
+[submodule "docs"]
+	path = docs
+	url = git@github.com:chrismaltby/gb-studio-docs.git
