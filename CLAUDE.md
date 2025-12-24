@@ -10,14 +10,30 @@ GB Studio is a drag-and-drop game creator for making Game Boy games. It's design
 
 ## User Guide
 
+### GB Studio 4 Key Features
+
+GB Studio 4 (current version) introduced major features:
+- **Debugger** - Inspect/pause scripts, edit variables live, view VRAM usage
+- **Color Only mode** - Doubles tile memory (384 background, 192 sprite tiles)
+- **Automatic palettes** - Supply color PNGs directly, GB Studio extracts palettes
+- **Native Apple Silicon support** - No Rosetta needed on M1/M2/M3 Macs
+- **Prefabs** (4.1+) - Reusable actor/trigger templates that update globally
+- **Project splitting** (4.1+) - Each resource gets its own file for better version control
+- **Script threads** (4.1+) - Run multiple scripts simultaneously
+- **Dialogue presets** (4.1+) - Customizable text box layouts (top/bottom, framed/unframed)
+- **Enhanced Platformer** (4.2+) - Built-in dashing, double jump, coyote time, wall jumps, solid/platform actors
+- **Plugin Manager** (4.2+) - Install/update plugins from approved list
+- **Per-scene color mode** (4.2+) - Mix Color Only scenes with monochrome-compatible scenes
+- **Run From Here** (4.2+) - Right-click scene to preview from that point
+
 ### Scene Types
 
 GB Studio supports multiple scene types, each with different player handling:
 
 - **Top Down 2D** - Player moves in four directions on a grid. Good for RPGs, adventure games, puzzle games.
-- **Platformer** - Side-scrolling with gravity, jumping, and optional features like wall jumps, double jump, dashing, slopes, ladders, and moving platforms.
-- **Adventure** - Point-and-click style movement.
-- **Shoot 'Em Up** - Scrolling shooter gameplay.
+- **Platformer** - Side-scrolling with gravity, jumping. Optional features: wall jumps, double jump, dashing, coyote time, slopes, ladders, moving platforms, solid actors.
+- **Adventure** - Point-and-click style movement with pathfinding.
+- **Shoot 'Em Up** - Scrolling shooter gameplay. Interaction is via collision rather than button press.
 - **Point and Click** - Cursor-based interaction.
 
 A single project can mix scene types. Plugins can add custom scene types.
@@ -47,6 +63,20 @@ Invisible rectangular areas that run scripts when the player enters or leaves th
 
 #### The Player
 The player start position is shown with a special icon that can be dragged between scenes. Each scene type can have a different default player sprite. The player can be hidden for title screens or cutscenes using the Hide Actor event.
+
+#### Prefabs (GB Studio 4.1+)
+Prefabs are reusable actor and trigger templates. Create a prefab, then place instances throughout your project. When you modify the prefab, all instances update automatically. Perfect for enemies, collectibles, NPCs with common behavior. Find prefabs in the Navigator sidebar under the PREFABS section.
+
+#### Collision Groups and Combat
+Actors can be assigned to collision groups (1, 2, or 3) enabling On Hit scripts. When actors or projectiles from one collision group touch an actor, the target's On Hit script runs.
+
+**Projectiles** are launched from actors with configurable:
+- Direction (fixed, actor-facing, toward target, angle)
+- Speed and lifetime
+- Collision group and collision mask (which groups it hits)
+- Destroy on hit option
+
+**Combat tip**: Projectiles not set to "destroy on hit" can trigger On Hit multiple times per collision. Use the "destroy on hit" option or add invincibility frames via variables.
 
 ### Asset Requirements
 
@@ -122,6 +152,17 @@ Scripts are visual event sequences attached to scenes, actors, or triggers.
 - **Timer** - Timed script execution
 - **Save Data** - Save/load game state
 
+#### Variables
+- **Global Variables** - Accessible from any script, persist across scenes
+- **Local Variables** - Each actor, trigger, and scene has 4 local variables (L0-L3) only accessible to that entity. Great for entity-specific state like "times talked to" or "chest opened"
+
+#### Scene Stack
+The scene stack enables menu/submenu patterns:
+1. Use "Store Current Scene On Stack" before changing to a menu scene
+2. In the menu, use "Restore Previous Scene From Stack" to return
+3. Use "Restore First Scene From Stack" to pop all menus and return to gameplay
+4. Use "Remove All From Scene Stack" to clear without changing scenes
+
 #### Script Values and Math Expressions
 Many events support Script Values - visual building blocks for combining variables, numbers, and operations. You can also type math expressions directly using operators (`+`, `-`, `*`, `/`, `==`, `!=`, `>=`, `&&`, `||`, `!`) and functions (`min`, `max`, `abs`, `atan2`, `isqrt`, `rnd`).
 
@@ -138,6 +179,16 @@ Text commands (type `!`): `!Font`, `!Speed`, `!Instant`, `!Cursor`
 
 #### Custom Scripts
 Create reusable script functions that can be called from anywhere. Variables can be passed by reference (modifiable) or by value (copied).
+
+#### GBVM (Advanced)
+GBVM (Game Boy Virtual Machine) is the stack-based VM that runs all GB Studio scripts. While visual scripting covers most needs, GBVM Script events allow direct VM access for advanced features like animated background tiles.
+
+**Learning GBVM:**
+1. Create a simple project with one scene and one event
+2. Go to `Game > Advanced > Export Project Data`
+3. Examine the generated `.s` files (e.g., `script_s0a0_interact.s`) to see how events compile to GBVM
+
+GBVM is best used alongside visual events for specific low-level operations, not as a replacement for the visual scripting system.
 
 ### Music Editor
 
@@ -166,6 +217,16 @@ Per scene:
 - 30 triggers max
 - Background tiles: 192 (Mono/Color+Mono) or 384 (Color Only)
 - Sprite tiles: 64-96 (Mono) or 128-192 (Color Only), depending on background complexity
+
+The status bar below each scene shows: `A: 0/20 S: 0/96 T: 0/30` (Actors/Sprites/Triggers)
+
+### Performance Tips
+
+- **On Update scripts** - GB Studio can only run a few On Update scripts simultaneously. Keep enemy counts low per scene (3-5 is safe).
+- **Sprite reuse** - Using the same sprite sheet for multiple actors doesn't count against tile limits multiple times.
+- **Common tilesets** - Share tilesets between scenes for seamless instant transitions without visual glitches.
+- **Simplify backgrounds** - More unique tiles = fewer sprite tiles available. Reuse tiles where possible.
+- **Logo scenes** - Unlimited unique tiles but no actors/player. Use for splash screens.
 
 ### Building and Exporting
 
